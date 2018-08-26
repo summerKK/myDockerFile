@@ -142,3 +142,6 @@ function fs() {
 		du $arg .[^.]* ./*;
 	fi;
 }
+
+# 设置client模式debug
+alias idekey='export XDEBUG_CONFIG="idekey=PHPSTORM"'
