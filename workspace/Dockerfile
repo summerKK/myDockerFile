@@ -231,7 +231,7 @@ ARG INSTALL_XDEBUG=false
 
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
     # Load the xdebug extension only with phpunit commands
-    apt-get install -y php${LARADOCK_PHP_VERSION}-xdebug && \
+    apt-get update && apt-get install -y --allow-unauthenticated php${LARADOCK_PHP_VERSION}-xdebug && \
     sed -i 's/^;//g' /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-xdebug.ini && \
     echo "alias phpunit='php -dzend_extension=xdebug.so /var/www/vendor/bin/phpunit'" >> ~/.bashrc \
 ;fi
@@ -239,7 +239,7 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
 # ADD for REMOTE debugging
 COPY ./xdebug.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini
 
-RUN sed -i "s/xdebug.remote_autostart=0/xdebug.remote_autostart=1/" /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini && \
+RUN sed -i "s/xdebug.remote_autostart=1/xdebug.remote_autostart=0/" /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini && \
     sed -i "s/xdebug.remote_enable=0/xdebug.remote_enable=1/" /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini && \
     sed -i "s/xdebug.cli_color=0/xdebug.cli_color=1/" /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/xdebug.ini
 
@@ -410,7 +410,7 @@ RUN if [ ${INSTALL_NODE} = true ]; then \
         && nvm use ${NODE_VERSION} \
         && nvm alias ${NODE_VERSION} \
         && if [ ${NPM_REGISTRY} ]; then \
-        npm config set registry ${NPM_REGISTRY} \
+        npm config set registry ${NPM_REpGISTRY} \
         ;fi \
         && if [ ${INSTALL_NPM_GULP} = true ]; then \
         npm install -g gulp \
@@ -769,7 +769,22 @@ RUN if [ ${INSTALL_PG_CLIENT} = true ]; then \
 USER root
 
 RUN apt-get update -yqq \
-    && apt-get -yqq install nasm 
+    && apt-get -yqq install nasm
+
+###########################################################################
+# php_ast EXTENSION
+###########################################################################
+
+USER root
+
+ARG INSTALL_PHP_AST=false
+
+RUN if [ ${INSTALL_PHP_AST} = true ]; then \
+    pecl install ast ; \
+    echo "extension=ast.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/ast.ini && \
+    ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/ast.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-ast.ini \
+;fi
+
 
 ###########################################################################
 # Dusk Dependencies:
